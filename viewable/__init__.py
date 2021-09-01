@@ -106,13 +106,13 @@ class Viewable:
         """ Build this view then wait till it closes.
          The view should have a tk.Toplevel as body """
         self.build()
-        self._body.wait_window(self._body)
+        if self._body.winfo_exists():
+            self._body.wait_window(self._body)
 
     def destroy(self):
         """ Destroy the body of this view """
-        if self._body:
+        if self._body and self._body.winfo_exists():
             self._body.destroy()
-
 
     # ==============================================
     #               METHODS TO IMPLEMENT
@@ -149,8 +149,8 @@ class Viewable:
         self.__state = BUILT
 
     def __binding(self):
-        self.__bind_map_event()
         self.__bind_destroy_event()
+        self.__bind_map_event()
 
     def __bind_map_event(self):
         # the body is already mapped
