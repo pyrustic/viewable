@@ -74,6 +74,7 @@ class Viewable:
             - pyrustic.view.DESTROYED: the state after the call of on_destroy
         """
         return self.__state
+
     # ==============================================
     #               PUBLIC METHODS
     # ==============================================
