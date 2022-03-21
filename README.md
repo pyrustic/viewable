@@ -14,7 +14,7 @@
 This project is part of the [Pyrustic Open Ecosystem](https://pyrustic.github.io).
 
 <!-- Quick Links -->
-[Installation](#installation) | [Reference](https://github.com/pyrustic/viewable/tree/master/docs/reference#readme)
+[Installation](#installation) | [Reference](https://github.com/pyrustic/viewable/tree/master/docs/modules#readme)
 
 ## Overview
 
