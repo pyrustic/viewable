@@ -1,12 +1,6 @@
 import tkinter as tk
 import tkutil
-
-
-# Constants
-NEW = "new"
-BUILT = "built"
-MAPPED = "mapped"
-DESTROYED = "destroyed"
+from viewable import error
 
 
 class Viewable:
@@ -48,14 +42,8 @@ class Viewable:
     """
     def __init__(self):
         self._body = None
-        self.__master = None
-        self.__state = NEW
-        self.__bind_destroy_id = None
-        self.__bind_map_id = None
 
-    # ==============================================
-    #                 PROPERTIES
-    # ==============================================
+    # ======== PROPERTIES ========
 
     @property
     def body(self):
@@ -64,25 +52,15 @@ class Viewable:
         """
         return self._body
 
-    @property
-    def state(self):
-        """ Return the current state of the Viewable instance.
-        States are integers, you can use these constants:
-            - pyrustic.view.NEW: the state just after instantiation;
-            - pyrustic.view.BUILT: the state after the call of _built
-            - pyrustic.view.MAPPED: the state after the call of on_map
-            - pyrustic.view.DESTROYED: the state after the call of on_destroy
-        """
-        return self.__state
+    # ======== PUBLIC METHOD =======
 
-    # ==============================================
-    #               PUBLIC METHODS
-    # ==============================================
     def build(self):
-        """ Build this view object. It returns the body """
-        if self.__state == NEW:
-            self.__build()
-            self.__binding()
+        """ Build this view """
+        if not self._body:
+            self._build()
+            if not self._body:
+                raise error.Error("Missing body")
+            implement_lifecycle(self._body, on_map=self._on_map, on_destroy=self._on_destroy)
         return self._body
 
     def build_pack(self, cnf=None, **kwargs):
@@ -110,17 +88,11 @@ class Viewable:
         if self._body.winfo_exists():
             self._body.wait_window(self._body)
 
-    def destroy(self):
-        """ Destroy the body of this view """
-        if self._body and self._body.winfo_exists():
-            self._body.destroy()
+    # ======= METHODS TO IMPLEMENT ========
 
-    # ==============================================
-    #               METHODS TO IMPLEMENT
-    # ==============================================
     def _build(self):
         """
-        Build the view here by defining the _body instance
+        Build the view layout here
         """
         pass
 
@@ -131,7 +103,7 @@ class Viewable:
         """
         if isinstance(self._body, tk.Toplevel):
             tkutil.center_dialog_effect(self._body,
-                                        within=self.__master.winfo_toplevel())
+                                        within=self._body.master.winfo_toplevel())
 
     def _on_destroy(self):
         """
@@ -139,81 +111,58 @@ class Viewable:
         """
         pass
 
-    # ==============================================
-    #                 INTERNAL METHODS
-    # ==============================================
-    def __build(self):
-        self._build()
-        if not self._body:
-            raise MissingBodyError
-        self.__master = self._body.master
-        self.__state = BUILT
 
-    def __binding(self):
-        self.__bind_destroy_event()
-        self.__bind_map_event()
+def implement_lifecycle(body, on_map=None, on_destroy=None):
+    """
+    Use this function to implement lifecyle mechanism
 
-    def __bind_map_event(self):
+    [parameters]
+    - body: the target tk object
+    - on_map: callback to be called on map
+    - on_destroy: callback to be called on destroy
+    """
+    _Lifecycle(body, on_map=on_map, on_destroy=on_destroy)
+
+
+class _Lifecycle:
+    def __init__(self, body, on_map=None, on_destroy=None):
+        self._body = body
+        self._master = body.master
+        self._on_map = on_map
+        self._on_destroy = on_destroy
+        self._bind_destroy_id = None
+        self._bind_map_id = None
+        self._bind_destroy_event()
+        self._bind_map_event()
+
+    def _bind_map_event(self):
         # the body is already mapped
         if isinstance(self._body, tk.Toplevel):
-            self.__run_on_map()
+            self._run_on_map()
         else:
-            self.__bind_map_id = self._body.bind("<Map>",
-                                                 self.__run_on_map,
-                                                 "+")
+            self._bind_map_id = self._body.bind("<Map>", self._run_on_map, "+")
 
-    def __bind_destroy_event(self):
+    def _bind_destroy_event(self):
         command = (lambda event,
                           widget=self._body,
-                          callback=self.__run_on_destroy:
+                          callback=self._run_on_destroy:
                    callback(event) if event.widget is widget else None)
-        self.__bind_destroy_id = self._body.bind("<Destroy>",
+        self._bind_destroy_id = self._body.bind("<Destroy>",
                                                 command, "+")
 
-    def __run_on_map(self, event=None):
+    def _run_on_map(self, event=None):
         self._on_map()
-        self.__state = MAPPED
-        if self.__bind_map_id is not None:
-            self._body.unbind("<Map>", self.__bind_map_id)
-            self.__bind_map_id = None
+        if self._bind_map_id is not None:
+            self._body.unbind("<Map>", self._bind_map_id)
+            self._bind_map_id = None
 
-    def __run_on_destroy(self, event=None):
+    def _run_on_destroy(self, event=None):
         self._on_destroy()
-        self.__state = DESTROYED
-        if self.__bind_map_id is not None:
-            self._body.unbind("<Destroy>", self.__bind_destroy_id)
-            self.__bind_map_id = None
+        if self._bind_map_id is not None:
+            self._body.unbind("<Destroy>", self._bind_destroy_id)
+            self._bind_map_id = None
         try:
-            if self.__master.focus_get() is None:
-                self.__master.winfo_toplevel().focus_lastfor().focus_force()
+            if self._master.focus_get() is None:
+                self._master.winfo_toplevel().focus_lastfor().focus_force()
         except Exception as e:
             pass
-
-
-class CustomView(Viewable):
-    def __init__(self, body=None,
-                 builder=None,
-                 on_map=None,
-                 on_destroy=None):
-        super().__init__()
-        if body:
-            self._body = body
-        if builder:
-            self._build = builder
-        if on_map:
-            self._on_map = on_map
-        if on_destroy:
-            self._on_destroy = on_destroy
-
-
-class Error(Exception):
-    def __init__(self, *args, **kwargs):
-        self.message = args[0] if args else ""
-        super().__init__(self.message)
-
-    def __str__(self):
-        return self.message
-
-
-class MissingBodyError(Error):
-    pass
