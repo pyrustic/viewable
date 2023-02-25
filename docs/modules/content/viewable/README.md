@@ -6,8 +6,8 @@ Back to [All Modules](https://github.com/pyrustic/viewable/blob/master/docs/modu
  
 No description
 
-> **Classes:** &nbsp; [Viewable](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/Viewable.md#class-viewable) &nbsp;&nbsp; [\_Lifecycle](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/_Lifecycle.md#class-_lifecycle)
+> **Classes:** &nbsp; [Viewable](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/Viewable.md#class-viewable)
 >
-> **Functions:** &nbsp; [implement\_lifecycle](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/functions.md#implement_lifecycle)
+> **Functions:** &nbsp; None
 >
 > **Constants:** &nbsp; None

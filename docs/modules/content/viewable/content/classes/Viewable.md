@@ -6,9 +6,9 @@ Back to [All Modules](https://github.com/pyrustic/viewable/blob/master/docs/modu
  
 No description
 
-> **Classes:** &nbsp; [Viewable](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/Viewable.md#class-viewable) &nbsp;&nbsp; [\_Lifecycle](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/_Lifecycle.md#class-_lifecycle)
+> **Classes:** &nbsp; [Viewable](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/classes/Viewable.md#class-viewable)
 >
-> **Functions:** &nbsp; [implement\_lifecycle](https://github.com/pyrustic/viewable/blob/master/docs/modules/content/viewable/content/functions.md#implement_lifecycle)
+> **Functions:** &nbsp; None
 >
 > **Constants:** &nbsp; None
 
@@ -52,7 +52,7 @@ The difference between these two ways of destruction is that when u call the Vie
 object
 
 ## Class Attributes
-
+No class attributes.
 
 ## Class Properties
 |Property|Type|Description|Inherited from|
@@ -62,7 +62,7 @@ object
 
 
 # All Methods
-[\_\_init\_\_](#__init__) &nbsp;&nbsp; [\_build](#_build) &nbsp;&nbsp; [\_on\_destroy](#_on_destroy) &nbsp;&nbsp; [\_on\_map](#_on_map) &nbsp;&nbsp; [build](#build) &nbsp;&nbsp; [build\_grid](#build_grid) &nbsp;&nbsp; [build\_pack](#build_pack) &nbsp;&nbsp; [build\_place](#build_place) &nbsp;&nbsp; [build\_wait](#build_wait)
+[\_\_init\_\_](#__init__) &nbsp;&nbsp; [build](#build) &nbsp;&nbsp; [build\_grid](#build_grid) &nbsp;&nbsp; [build\_pack](#build_pack) &nbsp;&nbsp; [build\_place](#build_place) &nbsp;&nbsp; [build\_wait](#build_wait) &nbsp;&nbsp; [\_build](#_build) &nbsp;&nbsp; [\_create\_body](#_create_body) &nbsp;&nbsp; [\_on\_destroy](#_on_destroy) &nbsp;&nbsp; [\_on\_map](#_on_map) &nbsp;&nbsp; [\_on\_remap](#_on_remap) &nbsp;&nbsp; [\_on\_unmap](#_on_unmap)
 
 ## \_\_init\_\_
 Initialize self.  See help(type(self)) for accurate signature.
@@ -75,7 +75,88 @@ Initialize self.  See help(type(self)) for accurate signature.
 
 
 
-**Return Value:** None.
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## build
+Build this view 
+
+
+
+**Signature:** (self, parent)
+
+
+
+
+
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## build\_grid
+Build this view then grid it 
+
+
+
+**Signature:** (self, parent, cnf=None, \*\*kwargs)
+
+
+
+
+
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## build\_pack
+Build this view then pack it 
+
+
+
+**Signature:** (self, parent, cnf=None, \*\*kwargs)
+
+
+
+
+
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## build\_place
+Build this view then place it 
+
+
+
+**Signature:** (self, parent, cnf=None, \*\*kwargs)
+
+
+
+
+
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## build\_wait
+Build this view then wait till it closes.
+The view should have a tk.Toplevel as body 
+
+
+
+**Signature:** (self, parent)
+
+
+
+
+
+**Return Value:** None
 
 [Back to Top](#module-overview)
 
@@ -91,7 +172,23 @@ Build the view layout here
 
 
 
-**Return Value:** None.
+**Return Value:** None
+
+[Back to Top](#module-overview)
+
+
+## \_create\_body
+No description
+
+
+
+**Signature:** (self, parent)
+
+
+
+
+
+**Return Value:** None
 
 [Back to Top](#module-overview)
 
@@ -107,13 +204,13 @@ Put here the code that will be executed at destroy event
 
 
 
-**Return Value:** None.
+**Return Value:** None
 
 [Back to Top](#module-overview)
 
 
 ## \_on\_map
-Put here the code that will be executed once
+Put here the code that will be executed when
 the body is mapped.
 
 
@@ -124,13 +221,13 @@ the body is mapped.
 
 
 
-**Return Value:** None.
+**Return Value:** None
 
 [Back to Top](#module-overview)
 
 
-## build
-Build this view 
+## \_on\_remap
+No description
 
 
 
@@ -140,62 +237,14 @@ Build this view
 
 
 
-**Return Value:** None.
+**Return Value:** None
 
 [Back to Top](#module-overview)
 
 
-## build\_grid
-Build this view then grid it 
-
-
-
-**Signature:** (self, cnf=None, \*\*kwargs)
-
-
-
-
-
-**Return Value:** None.
-
-[Back to Top](#module-overview)
-
-
-## build\_pack
-Build this view then pack it 
-
-
-
-**Signature:** (self, cnf=None, \*\*kwargs)
-
-
-
-
-
-**Return Value:** None.
-
-[Back to Top](#module-overview)
-
-
-## build\_place
-Build this view then place it 
-
-
-
-**Signature:** (self, cnf=None, \*\*kwargs)
-
-
-
-
-
-**Return Value:** None.
-
-[Back to Top](#module-overview)
-
-
-## build\_wait
-Build this view then wait till it closes.
-The view should have a tk.Toplevel as body 
+## \_on\_unmap
+Put here the code that will be executed when
+the body is unmapped.
 
 
 
@@ -205,7 +254,7 @@ The view should have a tk.Toplevel as body
 
 
 
-**Return Value:** None.
+**Return Value:** None
 
 [Back to Top](#module-overview)
 

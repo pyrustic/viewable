@@ -1,6 +1,8 @@
 import tkinter as tk
-import tkutil
 from viewable import error
+
+
+__all__ = ["Viewable"]
 
 
 class Viewable:
@@ -41,7 +43,8 @@ class Viewable:
       Use "build_wait" for toplevels if you want the app to wait till the window closes
     """
     def __init__(self):
-        self._body = None
+        self.__body = None
+        self.__built = False
 
     # ======== PROPERTIES ========
 
@@ -50,45 +53,58 @@ class Viewable:
         """
         Get the body of this view.
         """
-        return self._body
+        return self.__body
 
     # ======== PUBLIC METHOD =======
 
-    def build(self):
+    def build(self, parent):
         """ Build this view """
-        if not self._body:
-            self._build()
-            if not self._body:
-                raise error.Error("Missing body")
-            implement_lifecycle(self._body, on_map=self._on_map, on_destroy=self._on_destroy)
-        return self._body
+        if self.__built:
+            return self.body
+        body = self._create_body(parent)
+        self.__body = body
+        if body:
+            implement_lifecycle(body,
+                                on_map=self._on_map,
+                                on_remap=self._on_remap,
+                                on_unmap=self._on_unmap,
+                                on_destroy=self._on_destroy)
+        self._build()
+        self.__built = True
+        return body
 
-    def build_pack(self, cnf=None, **kwargs):
+    def build_pack(self, parent, cnf=None, **kwargs):
         """ Build this view then pack it """
-        self.build()
+        self.build(parent)
         cnf = {} if not cnf else cnf
-        self._body.pack(cnf=cnf, **kwargs)
+        self.body.pack(cnf=cnf, **kwargs)
+        return self.body
 
-    def build_grid(self, cnf=None, **kwargs):
+    def build_grid(self, parent, cnf=None, **kwargs):
         """ Build this view then grid it """
-        self.build()
+        self.build(parent)
         cnf = {} if not cnf else cnf
-        self._body.grid(cnf=cnf, **kwargs)
+        self.body.grid(cnf=cnf, **kwargs)
+        return self.body
 
-    def build_place(self, cnf=None, **kwargs):
+    def build_place(self, parent, cnf=None, **kwargs):
         """ Build this view then place it """
-        self.build()
+        self.build(parent)
         cnf = {} if not cnf else cnf
-        self._body.place(cnf=cnf, **kwargs)
+        self.body.place(cnf=cnf, **kwargs)
+        return self.body
 
-    def build_wait(self):
+    def build_wait(self, parent):
         """ Build this view then wait till it closes.
          The view should have a tk.Toplevel as body """
-        self.build()
-        if self._body.winfo_exists():
-            self._body.wait_window(self._body)
+        self.build(parent)
+        if self.body.winfo_exists():
+            self.body.wait_window(self.body)
+        return self.body
 
     # ======= METHODS TO IMPLEMENT ========
+    def _create_body(self, parent):
+        return tk.Frame(parent)
 
     def _build(self):
         """
@@ -98,12 +114,20 @@ class Viewable:
 
     def _on_map(self):
         """
-        Put here the code that will be executed once
+        Put here the code that will be executed when
         the body is mapped.
         """
-        if isinstance(self._body, tk.Toplevel):
-            tkutil.center_dialog_effect(self._body,
-                                        within=self._body.master.winfo_toplevel())
+        pass
+
+    def _on_remap(self):
+        pass
+
+    def _on_unmap(self):
+        """
+        Put here the code that will be executed when
+        the body is unmapped.
+        """
+        pass
 
     def _on_destroy(self):
         """
@@ -112,55 +136,123 @@ class Viewable:
         pass
 
 
-def implement_lifecycle(body, on_map=None, on_destroy=None):
+def implement_lifecycle(body, on_map=None, on_remap=None, on_unmap=None,
+                        on_destroy=None):
     """
     Use this function to implement lifecyle mechanism
 
     [parameters]
     - body: the target tk object
     - on_map: callback to be called on map
+    - on_unmap: callback to be called on unmap
     - on_destroy: callback to be called on destroy
     """
-    _Lifecycle(body, on_map=on_map, on_destroy=on_destroy)
+    lifecycle = Lifecycle(body, on_map=on_map, on_remap=on_remap,
+                          on_unmap=on_unmap, on_destroy=on_destroy)
+    lifecycle.activate()
 
 
-class _Lifecycle:
-    def __init__(self, body, on_map=None, on_destroy=None):
+class Lifecycle:
+    def __init__(self, body, on_map=None, on_remap=None, on_unmap=None,
+                 on_destroy=None):
         self._body = body
         self._master = body.master
         self._on_map = on_map
+        self._on_remap = on_remap
+        self._on_unmap = on_unmap
         self._on_destroy = on_destroy
-        self._bind_destroy_id = None
         self._bind_map_id = None
-        self._bind_destroy_event()
+        self._bind_unmap_id = None
+        self._bind_destroy_id = None
+        self._previously_mapped = False
+        self._active = False
+
+    @property
+    def body(self):
+        return self._body
+
+    @property
+    def on_map(self):
+        return self._on_map
+
+    @property
+    def on_remap(self):
+        return self._on_remap
+
+    @property
+    def on_unmap(self):
+        return self._on_unmap
+
+    @property
+    def on_destroy(self):
+        return self._on_destroy
+
+    @property
+    def active(self):
+        return self._active
+
+    def activate(self):
+        if not self._body.winfo_exists():
+            return False
+        self._bind()
+        self._active = True
+        return True
+
+    def deactivate(self):
+        if not self._body.winfo_exists():
+            return False
+        self._unbind()
+        self._active = False
+        return True
+
+    def _bind(self):
         self._bind_map_event()
+        self._bind_unmap_event()
+        self._bind_destroy_event()
+
+    def _unbind(self):
+        bind_ids = {self._bind_map_id: "<Map>",
+                    self._bind_unmap_id: "<Unmap>",
+                    self._bind_destroy_id: "<Destroy>"}
+        for bind_id, item in bind_ids.items():
+            self._body.unbind(item, bind_id)
+        self._bind_map_id = None
+        self._bind_unmap_id = None
+        self._bind_destroy_id = None
 
     def _bind_map_event(self):
-        # the body is already mapped
-        if isinstance(self._body, tk.Toplevel):
-            self._run_on_map()
-        else:
-            self._bind_map_id = self._body.bind("<Map>", self._run_on_map, "+")
+        self._bind_map_id = self._body.bind("<Map>", self._handle_map_event, True)
+
+    def _bind_unmap_event(self):
+        self._bind_unmap_id = self._body.bind("<Unmap>", self._handle_unmap_event, True)
 
     def _bind_destroy_event(self):
-        command = (lambda event,
-                          widget=self._body,
-                          callback=self._run_on_destroy:
-                   callback(event) if event.widget is widget else None)
-        self._bind_destroy_id = self._body.bind("<Destroy>",
-                                                command, "+")
+        command = (lambda event: self._handle_destroy_event(event)
+                   if event.widget is self._body else None)
+        self._bind_destroy_id = self._body.bind("<Destroy>", command, True)
 
-    def _run_on_map(self, event=None):
-        self._on_map()
-        if self._bind_map_id is not None:
-            self._body.unbind("<Map>", self._bind_map_id)
-            self._bind_map_id = None
+    def _handle_map_event(self, event):
+        if event.widget is not self._body:
+            return
+        if self._previously_mapped:
+            self._on_remap()
+        else:
+            self._on_map()
+            self._previously_mapped = True
+        return
 
-    def _run_on_destroy(self, event=None):
+    def _handle_unmap_event(self, event):
+        if event.widget is not self._body:
+            return
+        self._on_unmap()
+
+    def _handle_destroy_event(self, event):
+        if event.widget is not self._body:
+            return
+        self._unbind()
         self._on_destroy()
-        if self._bind_map_id is not None:
-            self._body.unbind("<Destroy>", self._bind_destroy_id)
-            self._bind_map_id = None
+        self._previously_mapped = False
+        self._active = False
         try:
             if self._master.focus_get() is None:
                 self._master.winfo_toplevel().focus_lastfor().focus_force()
